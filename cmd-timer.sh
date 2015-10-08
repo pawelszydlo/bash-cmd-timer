@@ -127,7 +127,7 @@ uninstall ()
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         # Remove all lines containing the installation path.
-        sed -i '' "/$(echo $INSTALL_DEST | sed -e 's/[\/&]/\\&/g')/d" ~/.profile
+        sed -i "/$(echo $INSTALL_DEST | sed -e 's/[\/&]/\\&/g')/d" ~/.profile
     else
         echo "Skipping ~/.profile cleanup."
     fi
