@@ -9,10 +9,10 @@
 # Configuration
 INSTALL_DEST="$HOME/.cmd-timer.sh"  # Where to install the script.
 DELAY=2  # Delay before showing the timer, in seconds.
-EXCLUDE=( vi vim less emacs ls )  # Do not time those commands.
+EXCLUDE=( vi vim less emacs )  # Do not time these commands.
 
 
-# Print in the top-right corner
+# Print text in the top-right corner.
 __print ()
 {
     tput sc  # Save the cursor
@@ -22,7 +22,7 @@ __print ()
 } 
 
 
-# Get time that passed.
+# Get elapsed time.
 __get_time ()
 {
     seconds="$((`date +%s` - $CMDTIMER_START))";
@@ -62,6 +62,7 @@ start ()
         fi
     done
 
+    # Start only if no PID var found.
     if [ -z "$CMDTIMER_PID" ]; then
         # Start the timer in the background and remember the PID.
         export CMDTIMER_START=`date +%s`
@@ -74,10 +75,11 @@ start ()
 # Finish the timer.
 stop ()
 {
+    # Stop only if PID var found.
     if [ ! -z "$CMDTIMER_PID" ]; then
         kill $CMDTIMER_PID 2> /dev/null
         wait $CMDTIMER_PID 2> /dev/null
-        # Check if the timer had time to actually start.
+        # Check if the timer actually started and make the counter green.
         seconds="$((`date +%s` - $CMDTIMER_START))";
         if [ $seconds -gt $DELAY ]; then
             __print "\033[1;32m$(__get_time)\033[0m"
@@ -93,7 +95,7 @@ install ()
     echo "Copying script to $INSTALL_DEST..."
     cp "$(pwd)/$(basename $BASH_SOURCE)" ~/.cmd-timer.sh
 
-    # This mechanism are highly unreliable, hence the checks when
+    # This mechanism is highly unreliable, hence the checks when
     # starting/stopping the timer.
     echo "Setting handlers..."
     # Execute before each command
@@ -102,6 +104,7 @@ install ()
     # execution is finished.
     export PROMPT_COMMAND="source $INSTALL_DEST stop"
 
+    # TODO: which file should be modified?
     echo "Adding timer handlers to your ~/.profile file..."
     echo "trap 'source "$INSTALL_DEST" start \$BASH_COMMAND' DEBUG" >> ~/.profile
     echo 'export PROMPT_COMMAND="source '$INSTALL_DEST' stop"' >> ~/.profile
