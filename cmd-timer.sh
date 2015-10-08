@@ -91,7 +91,7 @@ stop ()
 install ()
 {
 	echo "Copying script to $INSTALL_DEST..."
-	cp "$(pwd)/$BASH_SOURCE" ~/.cmd-timer.sh
+	cp "$(pwd)/$(basename $BASH_SOURCE)" ~/.cmd-timer.sh
 
 	# This mechanism are highly unreliable, hence the checks when
 	# starting/stopping the timer.
