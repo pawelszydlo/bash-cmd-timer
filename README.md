@@ -26,4 +26,5 @@ trap - DEBUG
 ```
 
 ###TODO
+* Determine the correct file to append the startup items to (.bashrc? .bash_profile? .profile? .bash_login?)
 * Logging
