@@ -20,7 +20,7 @@ source ~/.cmd-timer.sh uninstall
 The timer is started by the DEBUG trap and stopped throught PROMPT_COMMAND.
 
 ###Known issues
-* On OSX the trap is not removed when uninstalling. It will disappear in your new session or you can remove it manually by running:
+* Trap is not removed when uninstalling. It will disappear in your new session or you can remove it manually by running:
 ```bash
 trap - DEBUG
 ```
