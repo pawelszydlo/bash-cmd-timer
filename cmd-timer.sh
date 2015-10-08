@@ -10,6 +10,7 @@
 INSTALL_DEST="$HOME/.cmd-timer.sh"  # Where to install the script.
 DELAY=2  # Delay before showing the timer, in seconds.
 EXCLUDE=( vi vim less emacs )  # Do not time these commands.
+STARTUP_FILE="$HOME/.profile"  # File to which setup should be appended.
 
 
 # Print text in the top-right corner.
@@ -93,7 +94,7 @@ stop ()
 install ()
 {
     echo "Copying script to $INSTALL_DEST..."
-    cp "$(pwd)/$(basename $BASH_SOURCE)" ~/.cmd-timer.sh
+    cp $BASH_SOURCE $INSTALL_DEST
 
     # This mechanism is highly unreliable, hence the checks when
     # starting/stopping the timer.
@@ -105,9 +106,9 @@ install ()
     export PROMPT_COMMAND="source $INSTALL_DEST stop"
 
     # TODO: which file should be modified?
-    echo "Adding timer handlers to your ~/.profile file..."
-    echo "trap 'source "$INSTALL_DEST" start \$BASH_COMMAND' DEBUG" >> ~/.profile
-    echo 'export PROMPT_COMMAND="source '$INSTALL_DEST' stop"' >> ~/.profile
+    echo "Adding timer handlers to $STARTUP_FILE..."
+    echo "trap 'source "$INSTALL_DEST" start \$BASH_COMMAND' DEBUG" >> $STARTUP_FILE
+    echo 'export PROMPT_COMMAND="source '$INSTALL_DEST' stop"' >> $STARTUP_FILE
 
     echo "Done."
 }
@@ -125,15 +126,15 @@ uninstall ()
     unset CMDTIMER_PID
     unset CMDTIMER_START
 
-    echo "WARNING: All lines containing the string \"$INSTALL_DEST\" will be removed from your ~/.profile file. Press y to continue."
+    echo "WARNING: All lines containing the string \"$INSTALL_DEST\" will be removed from $STARTUP_FILE. Press y to continue."
     read -p "" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         # Remove all lines containing the installation path.
-        sed -i.ctbak "/$(echo $INSTALL_DEST | sed -e 's/[\/&]/\\&/g')/d" ~/.profile
-        rm ~/.profile.ctbak
+        sed -i.ctbak "/$(echo $INSTALL_DEST | sed -e 's/[\/&]/\\&/g')/d" $STARTUP_FILE
+        rm ${STARTUP_FILE}.ctbak
     else
-        echo "Skipping ~/.profile cleanup."
+        echo "Skipping cleanup."
     fi
     echo "Done."
 }
@@ -162,5 +163,5 @@ case "$1" in
         uninstall
         ;;
     *)
-        echo $"Usage: $BASH_SOURCE {install|uninstall}"
+        echo $"Usage: source $BASH_SOURCE {install|uninstall}"
 esac
