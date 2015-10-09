@@ -40,8 +40,7 @@ NOCOL="\033[0m"
 
 
 # Main.
-_cmdt_main ()
-{
+_cmdt_main () {
     # Check if script is being sourced, not run.
     if [[ $_CMDT_LAST_CMD = $0 ]]; then
         echo "This script uses global env variables and must be sourced. Run:"
@@ -93,8 +92,7 @@ _cmdt_get_profile () {
 
 
 # Print text in the top-right corner.
-_cmdt_print ()
-{
+_cmdt_print () {
     tput sc  # Save the cursor
     tput cup 0 $((`tput cols` - ${#1} + 16))  # Move to upper right corner
     echo -ne " $1 "
@@ -103,8 +101,7 @@ _cmdt_print ()
 
 
 # Get elapsed time.
-_cmdt_get_time ()
-{
+_cmdt_get_time () {
     local seconds="$((`date +%s` - $_CMDT_TIMER_START))";
     local text=`printf '%02d:%02d:%02d' \
         $(($seconds / 3600)) $(($seconds % 3600 / 60)) $(($seconds % 60))`
@@ -113,8 +110,7 @@ _cmdt_get_time ()
 
 
 # Run the timer.
-_cmdt_timer_start ()
-{
+_cmdt_timer_start () {
     # Wait before starting.
     sleep $_CMDT_DELAY
     # Check if command name was passed.
@@ -124,8 +120,7 @@ _cmdt_timer_start ()
         local cmd=''
     fi
     # Run until stopped.
-    while true
-    do
+    while true; do
         sleep 0.1 
         _cmdt_print "$YELLOW$cmd$(_cmdt_get_time)$NOCOL"
     done
@@ -133,22 +128,19 @@ _cmdt_timer_start ()
 
 
 # Print the summary.
-_cmdt_summary ()
-{
+_cmdt_summary () {
     echo -e "$PURPLE[ $_CMDT_TIMER_COMMAND ] executed in $1$NOCOL"
 }
 
 
 # Save the log.
-_cmdt_log ()
-{
+_cmdt_log () {
     echo "$_CMDT_TIMER_START;$1;$2;${@:3}" >> $_CMDT_LOGFILE
 }
 
 
 # Start the timer.
-_cmdt_start ()
-{
+_cmdt_start () {
     # Start only if no PID var found.
     if [ -z "$_CMDT_TIMER_PID" ]; then
         # Check for excluded commands.
@@ -169,8 +161,7 @@ _cmdt_start ()
 
 
 # Finish the timer.
-_cmdt_stop ()
-{
+_cmdt_stop () {
     # Stop only if PID var found.
     if [ ! -z "$_CMDT_TIMER_PID" ]; then
         kill $_CMDT_TIMER_PID 2> /dev/null
@@ -199,8 +190,7 @@ _cmdt_stop ()
 
 
 # Install the handlers.
-_cmdt_install ()
-{
+_cmdt_install () {
     local profile_file="$(_cmdt_get_profile)"
     echo "Copying script to $_CMDT_INSTALL_DEST..."
     cp $BASH_SOURCE $_CMDT_INSTALL_DEST
@@ -215,16 +205,17 @@ _cmdt_install ()
     export PROMPT_COMMAND="source $_CMDT_INSTALL_DEST stop"
 
     echo "Adding timer handlers to $profile_file..."
-    echo "trap 'source "$_CMDT_INSTALL_DEST" start \$BASH_COMMAND' DEBUG" >> $profile_file
-    echo 'export PROMPT_COMMAND="source '$_CMDT_INSTALL_DEST' stop"' >> $profile_file
+    echo "trap 'source "$_CMDT_INSTALL_DEST" start \$BASH_COMMAND' DEBUG" \
+        >> $profile_file
+    echo 'export PROMPT_COMMAND="source '$_CMDT_INSTALL_DEST' stop"' \
+        >> $profile_file
 
     echo "Done."
 }
 
 
 # Uninstall everything.
-_cmdt_uninstall ()
-{
+_cmdt_uninstall () {
     local profile_file="$(_cmdt_get_profile)"
     echo "Removing the handlers..."
     trap - DEBUG  # This is not working! I have no idea why.
@@ -236,12 +227,14 @@ _cmdt_uninstall ()
     unset _CMDT_TIMER_COMMAND
     unset _CMDT_TIMER_START
 
-    echo -e "\nWARNING:\nAll lines containing \"$_CMDT_INSTALL_DEST\" will be removed from $profile_file. Press y to continue."
+    echo -en "\nWARNING:\nAll lines containing \"$_CMDT_INSTALL_DEST\" will be " 
+    echo "removed from $profile_file. Press y to continue."
     read -p "" -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         # Remove all lines containing the installation path.
-        sed -i.ctbak "/$(echo $_CMDT_INSTALL_DEST | sed -e 's/[\/&]/\\&/g')/d" $profile_file
+        sed -i.ctbak "/$(echo $_CMDT_INSTALL_DEST | sed -e 's/[\/&]/\\&/g')/d" \
+            $profile_file
         rm ${profile_file}.ctbak
     else
         echo "Skipping cleanup."
