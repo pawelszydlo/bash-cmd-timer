@@ -10,7 +10,7 @@ curl https://raw.githubusercontent.com/pawelszydlo/bash-cmd-timer/master/cmd-tim
 source ~/.cmd-timer.sh install
 ```
 
-####Features
+###Features
 * No effort required - install and it just works
 * Highly configurable
 * Live timer during command execution
@@ -20,7 +20,7 @@ source ~/.cmd-timer.sh install
 * Compatible with Linux and OS X
 
 
-####Configuration 
+###Configuration 
 Configuration can be done by editing variables at the beginning of the script or by overwriting them through user config.
 The script will look for user config in:
 ```
@@ -33,7 +33,7 @@ The script will look for user config in:
 source ~/.cmd-timer.sh uninstall
 ```
 
-####Log format
+###Log format
 Data is logged as a semicolon separated list, each entry in a new line.
 ```
 timestamp ; timer ; command ; parameters
@@ -47,6 +47,6 @@ The timer is started by the DEBUG trap and stopped throught PROMPT_COMMAND.
 ```bash
 trap - DEBUG
 ```
-####TODO
+###TODO
 * Better way to display live timer
 * Better list of commands to exclude from timing
