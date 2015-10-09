@@ -16,6 +16,7 @@ source ~/.cmd-timer.sh install
 * Live timer during command execution
 * Summary after execution
 * Logging of execution times
+* Exclude certain commands, including parameter checking
 * Compatible with Linux and OS X
 
 
@@ -32,7 +33,13 @@ The script will look for user config in:
 source ~/.cmd-timer.sh uninstall
 ```
 
-###How it works?
+####Log format
+Data is logged as a semicolon separated list, each entry in a new line.
+```
+timestamp ; timer ; command ; parameters
+```
+
+###How does it work?
 The timer is started by the DEBUG trap and stopped throught PROMPT_COMMAND.
 
 ###Known issues
@@ -41,4 +48,5 @@ The timer is started by the DEBUG trap and stopped throught PROMPT_COMMAND.
 trap - DEBUG
 ```
 ####TODO
-* Better way to display live timer.
+* Better way to display live timer
+* Better list of commands to exclude from timing

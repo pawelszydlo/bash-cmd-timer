@@ -21,7 +21,7 @@ _CMDT_LOGGING=true
 # Log file.
 _CMDT_LOGFILE="$HOME/.cmd-timer.log"
 # Do not time these commands. Arguments are matched if present, from the left.
-_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp )
+_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man )
 
 
 ###### HELPERS ######
