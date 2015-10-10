@@ -14,6 +14,8 @@ _CMDT_LAST_CMD=$_
 _CMDT_INSTALL_DEST="$HOME/.cmd-timer.sh"
 # Minimum time before starting the timer, in seconds.
 _CMDT_DELAY=3
+# Display live timer in the corner of your terminal.
+_CMDT_LIVE_TIMER=true
 # Print the summary after the command finishes.
 _CMDT_SUMMARY=false
 # Enable logging of execution time to file.
@@ -42,7 +44,7 @@ NOCOL="\033[0m"
 # Main.
 _cmdt_main () {
     # Check if script is being sourced, not run.
-    if [[ $_CMDT_LAST_CMD = $0 ]]; then
+    if [ "$_CMDT_LAST_CMD" = "$0" ]; then
         echo "This script uses global env variables and must be sourced. Run:"
         echo "source $0"
         exit 1
@@ -56,7 +58,7 @@ _cmdt_main () {
     # Handle parameters
     case "$1" in
         start)
-            _cmdt_start ${@:2}
+            _cmdt_start "${@:2}"
             ;;
         stop)
             _cmdt_stop
@@ -76,7 +78,7 @@ _cmdt_main () {
 
 # Get the correct profile file to install to.
 _cmdt_get_profile () {
-    if [[ ! $(shopt -q login_shell) ]]; then
+    if [ ! "$(shopt -q login_shell)" ]; then
         # It is a login shell.
         if [ -f "$HOME/.bash_profile" ]; then
             local profile_file="$HOME/.bash_profile"
@@ -87,14 +89,14 @@ _cmdt_get_profile () {
         # It is not a login shell.
         local profile_file="$HOME/.bashrc"
     fi
-    echo $profile_file
+    echo "$profile_file"
 }
 
 
 # Print text in the top-right corner.
 _cmdt_print () {
     tput sc  # Save the cursor
-    tput cup 0 $((`tput cols` - ${#1} + 16))  # Move to upper right corner
+    tput cup 0 $(($(tput cols) - ${#1} + 15))  # Move to upper right corner
     echo -ne " $1 "
     tput rc  # Restore cursor
 } 
@@ -102,19 +104,19 @@ _cmdt_print () {
 
 # Get elapsed time.
 _cmdt_get_time () {
-    local seconds="$((`date +%s` - $_CMDT_TIMER_START))";
-    local text=`printf '%02d:%02d:%02d' \
-        $(($seconds / 3600)) $(($seconds % 3600 / 60)) $(($seconds % 60))`
+    local seconds="$(($(date +%s) - $_CMDT_TIMER_START))";
+    local text=$(printf '%02d:%02d:%02d' \
+        $(($seconds / 3600)) $(($seconds % 3600 / 60)) $(($seconds % 60)))
     echo "$text"
 }
 
 
 # Run the timer.
-_cmdt_timer_start () {
+_cmdt_live_timer_start () {
     # Wait before starting.
     sleep $_CMDT_DELAY
     # Check if command name was passed.
-    if [ ! -z $1 ]; then
+    if [ ! -z "$1" ]; then
         local cmd="$1: "
     else
         local cmd=''
@@ -144,18 +146,25 @@ _cmdt_start () {
     # Start only if no PID var found.
     if [ -z "$_CMDT_TIMER_PID" ]; then
         # Check for excluded commands.
-        for item in "${_CMDT_EXCLUDE[@]}"; do
-            for i in $(seq 1 ${#@}); do 
-                if [[ "${@:1:$i}" == "$item" ]]; then
-                    return
-                fi
+        if [ ! $# -eq 0 ]; then
+            for item in "${_CMDT_EXCLUDE[@]}"; do
+                for i in $(seq 1 $#); do 
+                    if [ "${*:1:$i}" = "$item" ]; then
+                        return
+                    fi
+                done
             done
-        done
+        fi
         # Start the timer in the background and remember the PID.
-        export _CMDT_TIMER_START=`date +%s`
+        export _CMDT_TIMER_START=$(date +%s)
         export _CMDT_TIMER_COMMAND="$@"
-        _cmdt_timer_start $1 & disown
-        export _CMDT_TIMER_PID=$!
+        if [ "$_CMDT_LIVE_TIMER" = true ]; then
+            _cmdt_live_timer_start "$1" & disown
+            export _CMDT_TIMER_PID=$!
+        else
+            # This var is used for checking if the timer is running, so set it.
+            export _CMDT_TIMER_PID="DUMMY"
+        fi
     fi
 }
 
@@ -168,18 +177,21 @@ _cmdt_stop () {
         wait $_CMDT_TIMER_PID 2> /dev/null
         
         # Check if the timer actually started.
-        local seconds="$((`date +%s` - $_CMDT_TIMER_START))";
+        local seconds="$(($(date +%s) - $_CMDT_TIMER_START))";
         if [ $seconds -gt $_CMDT_DELAY ]; then
             local elapsed=$(_cmdt_get_time)
             # Print the summary if enabled.
             if [ "$_CMDT_SUMMARY" = true ]; then
-                _cmdt_summary $elapsed
+                _cmdt_summary "$elapsed"
             fi
             # Save log if enabled
             if [ "$_CMDT_LOGGING" = true ]; then
-                _cmdt_log $elapsed $_CMDT_TIMER_COMMAND
+                _cmdt_log "$elapsed" $_CMDT_TIMER_COMMAND
             fi
-            _cmdt_print "$GREEN$elapsed$NOCOL"
+            # Make the live timer green, if enabled.
+            if [ "$_CMDT_LIVE_TIMER" = true ]; then
+                _cmdt_print "$GREEN$elapsed$NOCOL"
+            fi
 
         fi
         unset _CMDT_TIMER_PID
@@ -193,7 +205,7 @@ _cmdt_stop () {
 _cmdt_install () {
     local profile_file="$(_cmdt_get_profile)"
     echo "Copying script to $_CMDT_INSTALL_DEST..."
-    cp $BASH_SOURCE $_CMDT_INSTALL_DEST
+    cp "$BASH_SOURCE" "$_CMDT_INSTALL_DEST"
 
     # This mechanism is highly unreliable, hence the checks when
     # starting/stopping the timer.
@@ -206,9 +218,9 @@ _cmdt_install () {
 
     echo "Adding timer handlers to $profile_file..."
     echo "trap 'source "$_CMDT_INSTALL_DEST" start \$BASH_COMMAND' DEBUG" \
-        >> $profile_file
+        >> "$profile_file"
     echo 'export PROMPT_COMMAND="source '$_CMDT_INSTALL_DEST' stop"' \
-        >> $profile_file
+        >> "$profile_file"
 
     echo "Done."
 }
@@ -229,13 +241,14 @@ _cmdt_uninstall () {
 
     echo -en "\nWARNING:\nAll lines containing \"$_CMDT_INSTALL_DEST\" will be " 
     echo "removed from $profile_file. Press y to continue."
-    read -p "" -n 1 -r
+    local reply
+    read -n 1 reply
     echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if [ "$reply" = "y" ] || [ "$reply" = "Y" ]; then
         # Remove all lines containing the installation path.
-        sed -i.ctbak "/$(echo $_CMDT_INSTALL_DEST | sed -e 's/[\/&]/\\&/g')/d" \
-            $profile_file
-        rm ${profile_file}.ctbak
+        local needle=$(echo "$_CMDT_INSTALL_DEST" | sed -e 's/[\/&]/\\&/g')
+        sed -i.ctbak "/$needle/d" "$profile_file"
+        rm "${profile_file}.ctbak"
     else
         echo "Skipping cleanup."
     fi
@@ -247,4 +260,4 @@ _cmdt_uninstall () {
 
 
 # Run the script.
-_cmdt_main $@
+_cmdt_main "$@"
