@@ -27,7 +27,7 @@ The script will look for user config in:
 ~/.cmd-timer-conf
 ```
 Possible options and their defaults:
-```
+```bash
 # Where to install the script.
 _CMDT_INSTALL_DEST="$HOME/.cmd-timer"
 # Minimum time before starting the timer, in seconds.
