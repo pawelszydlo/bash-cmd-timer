@@ -26,6 +26,23 @@ The script will look for user config in:
 ```
 ~/.cmd-timer-conf
 ```
+Possible options and their defaults:
+```bash
+# Where to install the script.
+_CMDT_INSTALL_DEST="$HOME/.cmd-timer"
+# Minimum time before starting the timer, in seconds.
+_CMDT_DELAY=3
+# Display live timer in the corner of your terminal.
+_CMDT_LIVE_TIMER=true
+# Print the summary after the command finishes.
+_CMDT_SUMMARY=false
+# Enable logging of execution time to file.
+_CMDT_LOGGING=true
+# Log file.
+_CMDT_LOGFILE="$HOME/.cmd-timer.log"
+# Do not time these commands. Arguments are matched if present, from the left.
+_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man )
+```
 
 
 ###Uninstall
