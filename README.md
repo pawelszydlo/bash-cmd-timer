@@ -65,5 +65,4 @@ The timer is started by the DEBUG trap and stopped throught PROMPT_COMMAND.
 trap - DEBUG
 ```
 ###TODO
-* Better way to display live timer
 * Better list of commands to exclude from timing
