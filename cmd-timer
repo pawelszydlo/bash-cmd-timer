@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# cmd-timer.sh -- Time current command execution in the corner of your terminal.
+# cmd-timer -- Time current command execution in the corner of your terminal.
 # https://github.com/pawelszydlo/bash-cmd-timer
 #
 # Author: Pawel Szydlo (pawelszydlo@gmail.com)
@@ -11,7 +11,7 @@ _CMDT_LAST_CMD=$_
 
 
 # Where to install the script.
-_CMDT_INSTALL_DEST="$HOME/.cmd-timer.sh"
+_CMDT_INSTALL_DEST="$HOME/.cmd-timer"
 # Minimum time before starting the timer, in seconds.
 _CMDT_DELAY=3
 # Display live timer in the corner of your terminal.
@@ -51,8 +51,8 @@ _cmdt_main () {
     fi
 
     # Load user config, if exists.
-    if [ -r ~/.cmd-timer-conf.sh ]; then
-        source ~/.cmd-timer-conf.sh
+    if [ -r ~/.cmd-timer-conf ]; then
+        source ~/.cmd-timer-conf
     fi
 
     # Handle parameters

@@ -6,8 +6,8 @@ Display a timer in the upper-right hand side of your console, timing current com
 ###Quick Start
 Download and install the script:
 ```bash
-curl https://raw.githubusercontent.com/pawelszydlo/bash-cmd-timer/master/cmd-timer.sh -o ~/.cmd-timer.sh
-source ~/.cmd-timer.sh install
+curl https://raw.githubusercontent.com/pawelszydlo/bash-cmd-timer/master/cmd-timer -o ~/.cmd-timer
+source ~/.cmd-timer install
 ```
 
 ###Features
@@ -24,13 +24,13 @@ source ~/.cmd-timer.sh install
 Configuration can be done by editing variables at the beginning of the script or by overwriting them through user config.
 The script will look for user config in:
 ```
-~/.cmd-timer-conf.sh
+~/.cmd-timer-conf
 ```
 
 
 ###Uninstall
 ```bash
-source ~/.cmd-timer.sh uninstall
+source ~/.cmd-timer uninstall
 ```
 
 ###Log format
