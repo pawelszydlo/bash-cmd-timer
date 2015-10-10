@@ -95,10 +95,12 @@ _cmdt_get_profile () {
 
 # Print text in the top-right corner.
 _cmdt_print () {
-    tput sc  # Save the cursor
-    tput cup 0 $(($(tput cols) - ${#1} + 15))  # Move to upper right corner
-    echo -ne " $1 "
-    tput rc  # Restore cursor
+    # Sequence to store and recall cursor position.
+    local sc="$(tput sc)" rc="$(tput rc)"
+    # Sequence to move cursor to upper right corner.
+    local cup="$(tput cup 0 $(($(tput cols) - ${#1} + 15)))"
+    # Print using the above sequences for positioning.
+    echo -ne "$sc$cup $1 $rc"
 } 
 
 
