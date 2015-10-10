@@ -26,18 +26,6 @@ _CMDT_LOGFILE="$HOME/.cmd-timer.log"
 _CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man )
 
 
-###### HELPERS ######
-
-
-# Colour definitions.
-YELLOW="\033[1;33m"
-GREEN="\033[1;32m"
-WHITE="\033[1;37m"
-RED="\033[1;31m"
-PURPLE="\033[1;35m"
-NOCOL="\033[0m"
-
-
 ###### FUNCTION DEFINITIONS ######
 
 
@@ -95,12 +83,14 @@ _cmdt_get_profile () {
 
 # Print text in the top-right corner.
 _cmdt_print () {
+    # Correction to string length. Assumes color code escape sequences.
+    local correction=$(echo -e "$(tput setaf 5)$(tput sgr0)" | wc -c)
     # Sequence to store and recall cursor position.
     local sc="$(tput sc)" rc="$(tput rc)"
     # Sequence to move cursor to upper right corner.
-    local cup="$(tput cup 0 $(($(tput cols) - ${#1} + 15)))"
+    local cup="$(tput cup 0 $(($(tput cols) - ${#1} + $correction)))"
     # Print using the above sequences for positioning.
-    echo -ne "$sc$cup $1 $rc"
+    echo -ne "$sc$cup$1$rc"
 } 
 
 
@@ -126,20 +116,20 @@ _cmdt_live_timer_start () {
     # Run until stopped.
     while true; do
         sleep 0.1 
-        _cmdt_print "$YELLOW$cmd$(_cmdt_get_time)$NOCOL"
+        _cmdt_print "$(tput setaf 3) $cmd$(_cmdt_get_time) $(tput sgr0)"
     done
 }
 
 
 # Print the summary.
 _cmdt_summary () {
-    echo -e "$PURPLE[ $_CMDT_TIMER_COMMAND ] executed in $1$NOCOL"
+    echo -e "$(tput setaf 3)[ $_CMDT_TIMER_COMMAND ] executed in $1$(tput sgr0)"
 }
 
 
 # Save the log.
 _cmdt_log () {
-    echo "$_CMDT_TIMER_START;$1;$2;${@:3}" >> $_CMDT_LOGFILE
+    echo "$_CMDT_TIMER_START;$1;$2;${@:3}" >> "$_CMDT_LOGFILE"
 }
 
 
@@ -192,7 +182,7 @@ _cmdt_stop () {
             fi
             # Make the live timer green, if enabled.
             if [ "$_CMDT_LIVE_TIMER" = true ]; then
-                _cmdt_print "$GREEN$elapsed$NOCOL"
+                _cmdt_print "$(tput setaf 2) $elapsed $(tput sgr0)"
             fi
 
         fi
