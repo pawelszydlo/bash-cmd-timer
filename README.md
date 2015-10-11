@@ -34,6 +34,8 @@ _CMDT_INSTALL_DEST="$HOME/.cmd-timer"
 _CMDT_DELAY=3
 # Display live timer in the corner of your terminal.
 _CMDT_LIVE_TIMER=true
+# Display the timer in the terminal title.
+_CMDT_LIVE_TIMER_TITLE=true
 # Print the summary after the command finishes.
 _CMDT_SUMMARY=false
 # Enable logging of execution time to file.
