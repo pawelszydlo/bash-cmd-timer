@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# Naive test for cmd-timer
+
+
+# Don't allow sourcing.
+if [ "$_" != "$0" ]; then
+    echo "Please don't source this file."
+    exit 1
+fi
+
+set -e
+echo "Running tests..."
+
+
+# Start the timer.
+source cmd-timer start command param1 param2
+# Test for the things that should be set on timer start.
+if [ -z "$_CMDT_TIMER_PID" ]; then
+    echo "_CMDT_TIMER_PID not set!"
+    exit 1
+fi
+if [ "$_CMDT_TIMER_COMMAND" != "command" ]; then
+    echo "_CMDT_TIMER_COMMAND not set correctly!"
+    echo "Is: $_CMDT_TIMER_COMMAND"
+    echo "Should be: command"
+    exit 1
+fi
+if [ "$_CMDT_TIMER_PARAMS" != "param1 param2" ]; then
+    echo "_CMDT_TIMER_PARAMS not set correctly!"
+    echo "Is: $_CMDT_TIMER_PARAMS"
+    echo "Should be: param1 param2"
+    exit 1
+fi
+
+# Wait for the timer to actually start.
+sleep 5
+
+
+# Stop the timer.
+source cmd-timer stop
+# Test for the things that should be set on timer stop.
+if [ -n "$_CMDT_TIMER_PID" ]; then
+    echo "_CMDT_TIMER_PID is still set!"
+    exit 1
+fi
+if [ -n "$_CMDT_TIMER_COMMAND" ]; then
+    echo "_CMDT_TIMER_COMMAND is still set!"
+    exit 1
+fi
+if [ -n "$_CMDT_TIMER_PARAMS" ]; then
+    echo "_CMDT_TIMER_PARAMS is still set!"
+    exit 1
+fi
+if [ -n "$_CMDT_TIMER_START" ]; then
+    echo "_CMDT_TIMER_START is still set!"
+    exit 1
+fi
+
+
+echo "Done."

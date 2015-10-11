@@ -16,6 +16,8 @@ _CMDT_INSTALL_DEST="$HOME/.cmd-timer"
 _CMDT_DELAY=3
 # Display live timer in the corner of your terminal.
 _CMDT_LIVE_TIMER=true
+# Display the timer in the terminal title.
+_CMDT_LIVE_TIMER_TITLE=true
 # Print the summary after the command finishes.
 _CMDT_SUMMARY=false
 # Enable logging of execution time to file.
@@ -65,7 +67,7 @@ _cmdt_main () {
 
 
 # Get the correct profile file to install to.
-_cmdt_get_profile () {
+_cmdt_get_profile_filename () {
     if [ ! "$(shopt -q login_shell)" ]; then
         # It is a login shell.
         if [ -f "$HOME/.bash_profile" ]; then
@@ -94,8 +96,8 @@ _cmdt_print () {
 } 
 
 
-# Get elapsed time.
-_cmdt_get_time () {
+# Get elapsed time string.
+_cmdt_get_timer_text () {
     local seconds="$(($(date +%s) - $_CMDT_TIMER_START))";
     local text=$(printf '%02d:%02d:%02d' \
         $(($seconds / 3600)) $(($seconds % 3600 / 60)) $(($seconds % 60)))
@@ -103,20 +105,32 @@ _cmdt_get_time () {
 }
 
 
+# Get live timer string.
+_cmdt_get_live_timer_text () {
+    # Check if command name was passed.
+    if [ ! -z "$_CMDT_TIMER_COMMAND" ]; then
+        local cmd="$_CMDT_TIMER_COMMAND: "
+    else
+        local cmd=''
+    fi
+    echo "$cmd$(_cmdt_get_timer_text)"
+}
+
+
 # Run the timer.
 _cmdt_live_timer_start () {
     # Wait before starting.
     sleep $_CMDT_DELAY
-    # Check if command name was passed.
-    if [ ! -z "$1" ]; then
-        local cmd="$1: "
-    else
-        local cmd=''
-    fi
     # Run until stopped.
     while true; do
         sleep 0.1 
-        _cmdt_print "$(tput setaf 3) $cmd$(_cmdt_get_time) $(tput sgr0)"
+        if [ "$_CMDT_LIVE_TIMER" = true ]; then
+            _cmdt_print \
+                "$(tput setaf 3) $(_cmdt_get_live_timer_text) $(tput sgr0)"
+        fi
+        if [ "$_CMDT_LIVE_TIMER_TITLE" = true ]; then
+            echo -ne "\033]0;$(_cmdt_get_live_timer_text)\007"
+        fi
     done
 }
 
@@ -129,7 +143,7 @@ _cmdt_summary () {
 
 # Save the log.
 _cmdt_log () {
-    echo "$_CMDT_TIMER_START;$1;$2;${@:3}" >> "$_CMDT_LOGFILE"
+    echo "$_CMDT_TIMER_START;$1;$2;$3" >> "$_CMDT_LOGFILE"
 }
 
 
@@ -149,14 +163,10 @@ _cmdt_start () {
         fi
         # Start the timer in the background and remember the PID.
         export _CMDT_TIMER_START=$(date +%s)
-        export _CMDT_TIMER_COMMAND="$@"
-        if [ "$_CMDT_LIVE_TIMER" = true ]; then
-            _cmdt_live_timer_start "$1" & disown
-            export _CMDT_TIMER_PID=$!
-        else
-            # This var is used for checking if the timer is running, so set it.
-            export _CMDT_TIMER_PID="DUMMY"
-        fi
+        export _CMDT_TIMER_COMMAND="$1"
+        export _CMDT_TIMER_PARAMS="${@:2}"
+        _cmdt_live_timer_start "$_CMDT_TIMER_COMMAND" & disown
+        export _CMDT_TIMER_PID=$!
     fi
 }
 
@@ -164,30 +174,39 @@ _cmdt_start () {
 # Finish the timer.
 _cmdt_stop () {
     # Stop only if PID var found.
-    if [ ! -z "$_CMDT_TIMER_PID" ]; then
+    if [ -n "$_CMDT_TIMER_PID" ]; then
         kill $_CMDT_TIMER_PID 2> /dev/null
         wait $_CMDT_TIMER_PID 2> /dev/null
         
         # Check if the timer actually started.
         local seconds="$(($(date +%s) - $_CMDT_TIMER_START))";
         if [ $seconds -gt $_CMDT_DELAY ]; then
-            local elapsed=$(_cmdt_get_time)
             # Print the summary if enabled.
             if [ "$_CMDT_SUMMARY" = true ]; then
-                _cmdt_summary "$elapsed"
+                _cmdt_summary "$(_cmdt_get_timer_text)"
             fi
-            # Save log if enabled
-            if [ "$_CMDT_LOGGING" = true ]; then
-                _cmdt_log "$elapsed" $_CMDT_TIMER_COMMAND
+            # Save log if enabled and command was passed.
+            if [ "$_CMDT_LOGGING" = true ] && [ -n "$_CMDT_TIMER_COMMAND" ]
+            then
+                _cmdt_log \
+                    "$(_cmdt_get_timer_text)" \
+                    "$_CMDT_TIMER_COMMAND" \
+                    "$_CMDT_TIMER_PARAMS"
             fi
             # Make the live timer green, if enabled.
             if [ "$_CMDT_LIVE_TIMER" = true ]; then
-                _cmdt_print "$(tput setaf 2) $elapsed $(tput sgr0)"
+                _cmdt_print \
+                    "$(tput setaf 2) $(_cmdt_get_live_timer_text) $(tput sgr0)"
+            fi
+            # Erease terminal title, if enabled.
+            if [ "$_CMDT_LIVE_TIMER_TITLE" = true ]; then
+                echo -ne "\033]0;\007"
             fi
 
         fi
         unset _CMDT_TIMER_PID
         unset _CMDT_TIMER_COMMAND
+        unset _CMDT_TIMER_PARAMS
         unset _CMDT_TIMER_START
     fi
 }
@@ -195,7 +214,7 @@ _cmdt_stop () {
 
 # Install the handlers.
 _cmdt_install () {
-    local profile_file="$(_cmdt_get_profile)"
+    local profile_file="$(_cmdt_get_profile_filename)"
     echo "Copying script to $_CMDT_INSTALL_DEST..."
     cp "$BASH_SOURCE" "$_CMDT_INSTALL_DEST"
 
@@ -220,7 +239,7 @@ _cmdt_install () {
 
 # Uninstall everything.
 _cmdt_uninstall () {
-    local profile_file="$(_cmdt_get_profile)"
+    local profile_file="$(_cmdt_get_profile_filename)"
     echo "Removing the handlers..."
     trap - DEBUG  # This is not working! I have no idea why.
     _cmdt_stop
@@ -243,6 +262,16 @@ _cmdt_uninstall () {
         rm "${profile_file}.ctbak"
     else
         echo "Skipping cleanup."
+    fi
+
+    echo "The script will now try to remove itself. Press y to continue."
+    read -n 1 reply
+    echo
+    if [ "$reply" = "y" ] || [ "$reply" = "Y" ]; then
+        # Remove script file.
+        rm "$_CMDT_INSTALL_DEST"
+    else
+        echo "Leaving script file at $_CMDT_INSTALL_DEST"
     fi
     echo "Done."
 }
