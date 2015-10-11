@@ -1,7 +1,7 @@
 # bash-cmd-timer
 Display a timer in the upper-right hand side of your console, timing current command.
 
-![screenshot](http://i.imgur.com/vcHKBgf.png)
+![screenshot](http://szydlo.eu/wp-content/uploads/2015/10/cmd-timer.png)
 
 ###Quick Start
 Download and install the script:
