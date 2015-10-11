@@ -4,6 +4,9 @@
 # https://github.com/pawelszydlo/bash-cmd-timer
 #
 # Author: Pawel Szydlo (pawelszydlo@gmail.com)
+#
+# Version: 1.0.1
+#
 _CMDT_LAST_CMD=$_
 
 
@@ -25,7 +28,7 @@ _CMDT_LOGGING=true
 # Log file.
 _CMDT_LOGFILE="$HOME/.cmd-timer.log"
 # Do not time these commands. Arguments are matched if present, from the left.
-_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man )
+_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man htop top )
 
 
 ###### FUNCTION DEFINITIONS ######
@@ -60,7 +63,7 @@ _cmdt_main () {
             _cmdt_uninstall
             ;;
         *)
-            echo $"Usage: source $BASH_SOURCE {install|uninstall}"
+            echo "Usage: source $BASH_SOURCE {install|uninstall}"
             return
     esac
 }
@@ -200,7 +203,7 @@ _cmdt_stop () {
             fi
             # Erease terminal title, if enabled.
             if [ "$_CMDT_LIVE_TIMER_TITLE" = true ]; then
-                echo -ne "\033]0;\007"
+                echo -ne "\033]0;$_CMDT_TIMER_COMMAND: finished\007"
             fi
 
         fi

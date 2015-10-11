@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Naive test for cmd-timer
+# Naive test for cmd-timer. Assumes default config.
 
 
 # Don't allow sourcing.
@@ -11,6 +11,9 @@ fi
 
 set -e
 echo "Running tests..."
+unset _CMDT_TIMER_PID
+unset _CMDT_TIMER_COMMAND
+unset _CMDT_TIMER_START
 
 
 # Start the timer.
@@ -33,9 +36,6 @@ if [ "$_CMDT_TIMER_PARAMS" != "param1 param2" ]; then
     exit 1
 fi
 
-# Wait for the timer to actually start.
-sleep 5
-
 
 # Stop the timer.
 source cmd-timer stop
@@ -54,6 +54,22 @@ if [ -n "$_CMDT_TIMER_PARAMS" ]; then
 fi
 if [ -n "$_CMDT_TIMER_START" ]; then
     echo "_CMDT_TIMER_START is still set!"
+    exit 1
+fi
+
+
+# Install the timer.
+source cmd-timer install
+if [ ! -f ~/.cmd-timer ]; then
+    echo "Script not in place after installation!"
+    exit 1
+fi
+
+
+# Uninstall the timer.
+source cmd-timer uninstall <<< yy
+if [ -f ~/.cmd-timer ]; then
+    echo "Script still exists after uninstallation!"
     exit 1
 fi
 
