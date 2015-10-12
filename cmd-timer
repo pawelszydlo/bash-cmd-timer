@@ -5,7 +5,7 @@
 #
 # Author: Pawel Szydlo (pawelszydlo@gmail.com)
 #
-# Version: 1.0.1
+# Version: 1.0.2
 #
 _CMDT_LAST_CMD=$_
 
@@ -71,15 +71,11 @@ _cmdt_main () {
 
 # Get the correct profile file to install to.
 _cmdt_get_profile_filename () {
-    if [ ! "$(shopt -q login_shell)" ]; then
-        # It is a login shell.
-        if [ -f "$HOME/.bash_profile" ]; then
-            local profile_file="$HOME/.bash_profile"
-        else
-            local profile_file="$HOME/.profile"
-        fi
+    if [ $(uname) == "Darwin" ]; then
+        # It is OS X
+        local profile_file="$HOME/.profile"
     else
-        # It is not a login shell.
+        # Not OS X. Really hard to guess which file will be used, so don't.
         local profile_file="$HOME/.bashrc"
     fi
     echo "$profile_file"
@@ -242,6 +238,12 @@ _cmdt_install () {
 
 # Uninstall everything.
 _cmdt_uninstall () {
+    echo "The script will now be uninstalled. This shell will close afterwards."
+    read -p "Press y to continue... " -n 1 reply
+    echo
+    if [ "$reply" != "y" ] && [ "$reply" != "Y" ]; then
+        return
+    fi
     local profile_file="$(_cmdt_get_profile_filename)"
     echo "Removing the handlers..."
     trap - DEBUG  # This is not working! I have no idea why.
@@ -254,7 +256,7 @@ _cmdt_uninstall () {
     unset _CMDT_TIMER_START
 
     echo -en "\nWARNING:\nAll lines containing \"$_CMDT_INSTALL_DEST\" will be " 
-    echo "removed from $profile_file. Press y to continue."
+    echo "removed from $profile_file. Press y to continue..."
     local reply
     read -n 1 reply
     echo
@@ -267,16 +269,11 @@ _cmdt_uninstall () {
         echo "Skipping cleanup."
     fi
 
-    echo "The script will now try to remove itself. Press y to continue."
-    read -n 1 reply
-    echo
-    if [ "$reply" = "y" ] || [ "$reply" = "Y" ]; then
-        # Remove script file.
-        rm "$_CMDT_INSTALL_DEST"
-    else
-        echo "Leaving script file at $_CMDT_INSTALL_DEST"
-    fi
+    echo "Removing script file $_CMDT_INSTALL_DEST..."
+    rm "$_CMDT_INSTALL_DEST"
+    
     echo "Done."
+    exit
 }
 
 
