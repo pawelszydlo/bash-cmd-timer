@@ -1,5 +1,5 @@
 # bash-cmd-timer
-Display a timer in the upper-right hand side of your console, timing current command.
+Live timer and logger of command execution times.
 
 ###Quick Start
 Download and install the script:
