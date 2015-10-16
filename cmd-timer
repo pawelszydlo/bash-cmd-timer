@@ -5,7 +5,7 @@
 #
 # Author: Pawel Szydlo (pawelszydlo@gmail.com)
 #
-# Version: 1.0.2
+# Version: 1.0.3
 #
 _CMDT_LAST_CMD=$_
 
@@ -28,7 +28,8 @@ _CMDT_LOGGING=true
 # Log file.
 _CMDT_LOGFILE="$HOME/.cmd-timer.log"
 # Do not time these commands. Arguments are matched if present, from the left.
-_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man htop top )
+_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man htop top 
+    su screen irrsi irc "sudo -s" )
 
 
 ###### FUNCTION DEFINITIONS ######
@@ -62,8 +63,11 @@ _cmdt_main () {
         uninstall)
             _cmdt_uninstall
             ;;
+        update)
+            _cmdt_update
+            ;;
         *)
-            echo "Usage: source $BASH_SOURCE {install|uninstall}"
+            echo "Usage: source $BASH_SOURCE {install|uninstall|update}"
             return
     esac
 }
@@ -180,17 +184,16 @@ _cmdt_stop () {
         # Check if the timer actually started.
         local seconds="$(($(date +%s) - $_CMDT_TIMER_START))";
         if [ $seconds -gt $_CMDT_DELAY ]; then
+            local elapsed="$(_cmdt_get_timer_text)"
             # Print the summary if enabled.
             if [ "$_CMDT_SUMMARY" = true ]; then
-                _cmdt_summary "$(_cmdt_get_timer_text)"
+                _cmdt_summary "$elapsed"
             fi
             # Save log if enabled and command was passed.
             if [ "$_CMDT_LOGGING" = true ] && [ -n "$_CMDT_TIMER_COMMAND" ]
             then
                 _cmdt_log \
-                    "$(_cmdt_get_timer_text)" \
-                    "$_CMDT_TIMER_COMMAND" \
-                    "$_CMDT_TIMER_PARAMS"
+                    "$elapsed" "$_CMDT_TIMER_COMMAND" "$_CMDT_TIMER_PARAMS"
             fi
             # Make the live timer green, if enabled.
             if [ "$_CMDT_LIVE_TIMER" = true ]; then
@@ -225,12 +228,15 @@ _cmdt_install () {
     # This command will be executed before each prompt, which means after
     # execution is finished.
     export PROMPT_COMMAND="source $_CMDT_INSTALL_DEST stop"
+    # Add an alias to the script, for easier use.
+    alias cmdt=". $_CMDT_INSTALL_DEST"
 
     echo "Adding timer handlers to $profile_file..."
     echo "trap 'source "$_CMDT_INSTALL_DEST" start \$BASH_COMMAND' DEBUG" \
         >> "$profile_file"
     echo 'export PROMPT_COMMAND="source '$_CMDT_INSTALL_DEST' stop"' \
         >> "$profile_file"
+    echo 'alias cmdt=". '$_CMDT_INSTALL_DEST'"' >> "$profile_file"
 
     echo "Done."
 }
@@ -254,6 +260,7 @@ _cmdt_uninstall () {
     unset _CMDT_TIMER_PID
     unset _CMDT_TIMER_COMMAND
     unset _CMDT_TIMER_START
+    unalias cmdt 2> /dev/null
 
     echo -en "\nWARNING:\nAll lines containing \"$_CMDT_INSTALL_DEST\" will be " 
     echo "removed from $profile_file. Press y to continue..."
@@ -274,6 +281,20 @@ _cmdt_uninstall () {
     
     echo "Done."
     exit
+}
+
+
+# Update from GitHub.
+_cmdt_update () {
+    echo "Downloading latest version into $_CMDT_INSTALL_DEST..."
+    curl \
+    https://raw.githubusercontent.com/pawelszydlo/bash-cmd-timer/master/cmd-timer \
+    -o "$_CMDT_INSTALL_DEST" -# --connect-timeout 3
+    if [ $? -eq 0 ]; then
+        echo "Done."
+    else
+        echo "Error occured. Please try again later."
+    fi
 }
 
 

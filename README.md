@@ -1,16 +1,18 @@
 # bash-cmd-timer
 Display a timer in the upper-right hand side of your console, timing current command.
 
-![screenshot](http://szydlo.eu/wp-content/uploads/2015/10/cmd-timer.png)
-
 ###Quick Start
 Download and install the script:
 ```bash
 curl https://raw.githubusercontent.com/pawelszydlo/bash-cmd-timer/master/cmd-timer -o ~/.cmd-timer
 source ~/.cmd-timer install
 ```
+File will be downloaded and appropriate entries will be added to your _.bashrc_ or _.profile_ file.
+Alias _cmdt_ will be created for your convenience.
 
 ###Features
+![screenshot](http://szydlo.eu/wp-content/uploads/2015/10/cmd-timer.png)
+
 * No effort required - install and it just works
 * Highly configurable
 * Live timer during command execution
@@ -46,10 +48,15 @@ _CMDT_LOGFILE="$HOME/.cmd-timer.log"
 _CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man )
 ```
 
+###Update
+Script can automatically update itself from latest repository version.
+```bash
+cmdt update
+```
 
 ###Uninstall
 ```bash
-source ~/.cmd-timer uninstall
+cmdt uninstall
 ```
 
 ###Log format
