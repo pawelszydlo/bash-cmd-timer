@@ -19,6 +19,7 @@ Alias _cmdt_ will be created for your convenience.
 * Summary after execution
 * Logging of execution times
 * Exclude certain commands, including parameter checking
+* Callback after a command finishes
 * Compatible with Linux and OS X
 
 
@@ -44,8 +45,11 @@ _CMDT_SUMMARY=false
 _CMDT_LOGGING=true
 # Log file.
 _CMDT_LOGFILE="$HOME/.cmd-timer.log"
+# Callback to execute after the timer finishes.
+_CMDT_CALLBACK="echo -ne \007"
 # Do not time these commands. Arguments are matched if present, from the left.
-_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man )
+_CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man htop top 
+    su screen irrsi irc "sudo -s" )
 ```
 
 ###Update
