@@ -33,23 +33,31 @@ Possible options and their defaults:
 ```bash
 # Where to install the script.
 _CMDT_INSTALL_DEST="$HOME/.cmd-timer"
+
 # Minimum time before starting the timer, in seconds.
 _CMDT_DELAY=3
+
 # Display live timer in the corner of your terminal.
 _CMDT_LIVE_TIMER=true
+
 # Display the timer in the terminal title.
 _CMDT_LIVE_TIMER_TITLE=true
+
 # Print the summary after the command finishes.
 _CMDT_SUMMARY=false
+
 # Enable logging of execution time to file.
 _CMDT_LOGGING=true
+
 # Log file.
 _CMDT_LOGFILE="$HOME/.cmd-timer.log"
-# Callback to execute after the timer finishes.
-_CMDT_CALLBACK="echo -ne \007"
+
 # Do not time these commands. Arguments are matched if present, from the left.
 _CMDT_EXCLUDE=( vi vim less emacs pv "tail -f" ssh telnet scp ftp man htop top 
     su screen irrsi irc "sudo -s" )
+
+# Callback to execute after the timer finishes. It will be passed to eval.
+_CMDT_CALLBACK='echo -ne \\007'
 ```
 
 ###Update
